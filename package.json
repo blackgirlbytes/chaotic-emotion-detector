@@ -1,0 +1,22 @@
+{
+  "name": "webcam-app",
+  "version": "1.0.0",
+  "description": "A simple webcam application built with vanilla JavaScript",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "webcam",
+    "javascript",
+    "camera",
+    "photo",
+    "web"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=12.0.0"
+  }
+}
