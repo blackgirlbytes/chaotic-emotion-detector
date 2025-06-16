@@ -41,8 +41,8 @@ class WebcamApp {
             await faceapi.nets.faceExpressionNet.loadFromUri('/models');
             
             this.modelsLoaded = true;
-            this.loadingStatus.textContent = 'Face detection models loaded successfully!';
-            this.loadingStatus.style.color = '#28a745';
+            this.loadingStatus.textContent = 'AI models loaded successfully!';
+            this.loadingStatus.className = 'status-indicator status-success';
             
             // Hide loading status after 3 seconds
             setTimeout(() => {
@@ -51,8 +51,8 @@ class WebcamApp {
             
         } catch (error) {
             console.error('Error loading face detection models:', error);
-            this.loadingStatus.textContent = 'Failed to load face detection models. Check console for details.';
-            this.loadingStatus.style.color = '#dc3545';
+            this.loadingStatus.textContent = 'Failed to load AI models';
+            this.loadingStatus.className = 'status-indicator status-error';
         }
     }
 
@@ -151,16 +151,16 @@ class WebcamApp {
 
     startFaceDetection() {
         this.isDetectionEnabled = true;
-        this.toggleDetectionBtn.textContent = 'Disable Face Detection';
-        this.toggleDetectionBtn.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
+        this.toggleDetectionBtn.textContent = '🤖 Disable AI Detection';
+        this.toggleDetectionBtn.className = 'btn btn-danger';
         
         this.detectFaces();
     }
 
     stopFaceDetection() {
         this.isDetectionEnabled = false;
-        this.toggleDetectionBtn.textContent = 'Enable Face Detection';
-        this.toggleDetectionBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        this.toggleDetectionBtn.textContent = '🤖 Enable AI Detection';
+        this.toggleDetectionBtn.className = 'btn btn-secondary';
         
         if (this.detectionInterval) {
             clearTimeout(this.detectionInterval);
@@ -318,19 +318,25 @@ class WebcamApp {
         timestamp.className = 'timestamp';
         timestamp.textContent = new Date(photo.timestamp).toLocaleString();
         
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'photo-actions';
+        
         const downloadBtn = document.createElement('button');
-        downloadBtn.textContent = 'Download';
+        downloadBtn.className = 'btn btn-primary';
+        downloadBtn.textContent = '⬇️ Download';
         downloadBtn.onclick = () => this.downloadPhoto(photo);
         
         const deleteBtn = document.createElement('button');
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
+        deleteBtn.className = 'btn btn-danger';
+        deleteBtn.textContent = '🗑️ Delete';
         deleteBtn.onclick = () => this.deletePhoto(photo.id);
+        
+        actionsDiv.appendChild(downloadBtn);
+        actionsDiv.appendChild(deleteBtn);
         
         photoDiv.appendChild(img);
         photoDiv.appendChild(timestamp);
-        photoDiv.appendChild(downloadBtn);
-        photoDiv.appendChild(deleteBtn);
+        photoDiv.appendChild(actionsDiv);
         
         return photoDiv;
     }
@@ -373,21 +379,21 @@ class WebcamApp {
 
     startChaoticMode() {
         if (!this.isDetectionEnabled) {
-            alert('Please enable face detection first!');
+            alert('Please enable AI Detection first!');
             return;
         }
 
         this.isChaoticModeEnabled = true;
         this.chaoticModeBtn.textContent = '🎭 Disable Chaotic Mode';
-        this.chaoticModeBtn.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
+        this.chaoticModeBtn.className = 'btn btn-danger';
         
         console.log('🎭 CHAOTIC MODE ACTIVATED! 🎭');
     }
 
     stopChaoticMode() {
         this.isChaoticModeEnabled = false;
-        this.chaoticModeBtn.textContent = '🎭 Enable Chaotic Mode';
-        this.chaoticModeBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        this.chaoticModeBtn.textContent = '🎭 Chaotic Mode';
+        this.chaoticModeBtn.className = 'btn btn-secondary';
         
         // Clear all chaos effects
         this.clearChaosEffects();

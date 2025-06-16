@@ -3,36 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Webcam App with Face Detection</title>
+    <title>Webcam Studio - AI Face Detection</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>Webcam App with Face Detection</h1>
-        <div class="webcam-container">
-            <video id="webcam" autoplay playsinline></video>
-            <canvas id="overlay"></canvas>
-            <canvas id="canvas" style="display: none;"></canvas>
-        </div>
-        <div class="controls">
-            <button id="startBtn">Start Camera</button>
-            <button id="stopBtn" disabled>Stop Camera</button>
-            <button id="captureBtn" disabled>Take Photo</button>
-            <button id="toggleDetectionBtn" disabled>Enable Face Detection</button>
-            <button id="chaoticModeBtn" disabled>🎭 Enable Chaotic Mode</button>
-        </div>
-        <div class="detection-info">
-            <p id="faceCount">Faces detected: 0</p>
-            <p id="emotionDisplay">Current emotion: None</p>
-            <div id="loadingStatus">Loading face detection models...</div>
-        </div>
-        <div id="emojiOverlay" class="emoji-overlay"></div>
-        <div class="photo-container">
-            <h3>Captured Photos</h3>
-            <div id="photos"></div>
-        </div>
+        <header class="header">
+            <h1>Webcam Studio</h1>
+            <p class="subtitle">AI-Powered Face Detection & Emotion Recognition</p>
+        </header>
+        
+        <main class="main-content">
+            <section class="webcam-section">
+                <div class="webcam-container">
+                    <video id="webcam" autoplay playsinline muted></video>
+                    <canvas id="overlay"></canvas>
+                    <canvas id="canvas" style="display: none;"></canvas>
+                </div>
+                
+                <div class="controls">
+                    <button id="startBtn" class="btn btn-primary">
+                        📹 Start Camera
+                    </button>
+                    <button id="stopBtn" class="btn btn-danger" disabled>
+                        ⏹️ Stop Camera
+                    </button>
+                    <button id="captureBtn" class="btn btn-accent" disabled>
+                        📸 Capture Photo
+                    </button>
+                    <button id="toggleDetectionBtn" class="btn btn-secondary" disabled>
+                        🤖 Enable AI Detection
+                    </button>
+                    <button id="chaoticModeBtn" class="btn btn-secondary" disabled>
+                        🎭 Chaotic Mode
+                    </button>
+                </div>
+            </section>
+            
+            <aside class="info-panel">
+                <div class="info-card">
+                    <h3>🎯 Detection Status</h3>
+                    <p id="faceCount">Faces detected: 0</p>
+                    <p id="emotionDisplay">Current emotion: None</p>
+                    <div id="loadingStatus" class="status-indicator status-warning">
+                        Loading AI models...
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <h3>ℹ️ Instructions</h3>
+                    <p>1. Click "Start Camera" to begin</p>
+                    <p>2. Enable AI Detection for face recognition</p>
+                    <p>3. Try Chaotic Mode for fun reactions!</p>
+                    <p>4. Capture photos to save moments</p>
+                </div>
+                
+                <div class="info-card">
+                    <h3>🔒 Privacy</h3>
+                    <p>All processing happens locally in your browser. No data is sent to external servers.</p>
+                </div>
+            </aside>
+        </main>
+        
+        <section class="photo-gallery">
+            <h3>📷 Photo Gallery</h3>
+            <div id="photos" class="photo-grid"></div>
+        </section>
     </div>
+    
+    <div id="emojiOverlay" class="emoji-overlay"></div>
+    
     <script src="script.js"></script>
 </body>
 </html>
