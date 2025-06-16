@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webcam App with Face Detection</title>
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            text-align: center;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .video-container {
+            position: relative;
+            display: inline-block;
+            margin: 1rem 0;
+        }
+
+        #video {
+            width: 100%;
+            max-width: 640px;
+            height: auto;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        .controls {
+            margin: 1rem 0;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .error {
+            color: #dc3545;
+            margin: 1rem 0;
+            padding: 10px;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+        }
+
+        .status {
+            margin: 1rem 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .status.success {
+            color: #155724;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+
+        #canvas {
+            display: none;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .photo-container {
+            margin: 1rem 0;
+        }
+
+        .detection-info {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 1rem 0;
+            font-size: 14px;
+        }
+
+        .emotion-analysis {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 1rem 0;
+            font-size: 14px;
+        }
+
+        .emotion-bar {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+        }
+
+        .emotion-label {
+            min-width: 80px;
+            font-weight: bold;
+            text-transform: capitalize;
+        }
+
+        .emotion-progress {
+            flex: 1;
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            margin: 0 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .emotion-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            background: linear-gradient(90deg, #28a745, #ffc107, #dc3545);
+        }
+
+        .emotion-percentage {
+            min-width: 40px;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        .dominant-emotion {
+            background-color: #d4edda;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        .dominant-emotion h3 {
+            margin: 0 0 10px 0;
+            color: #155724;
+        }
+
+        .emotion-emoji {
+            font-size: 3rem;
+            margin: 10px 0;
+        }
+
+        .emotion-history {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 1rem 0;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .emotion-timeline {
+            font-size: 12px;
+            color: #856404;
+        }
+
+        .toggle-container {
+            margin: 1rem 0;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            margin: 0 10px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #007bff;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📹 Webcam App with Face Detection</h1>
+        
+        <div id="status" class="status"></div>
+        <div id="error" class="error" style="display: none;"></div>
+        
+        <div class="video-container">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="overlay"></canvas>
+        </div>
+        <canvas id="canvas"></canvas>
+        
+        <div class="toggle-container">
+            <label>
+                Face Detection:
+                <label class="toggle-switch">
+                    <input type="checkbox" id="faceDetectionToggle">
+                    <span class="slider"></span>
+                </label>
+            </label>
+        </div>
+        
+        <div id="detectionInfo" class="detection-info" style="display: none;"></div>
+        
+        <div id="emotionAnalysis" class="emotion-analysis" style="display: none;">
+            <h3>🎭 Emotion Analysis</h3>
+            <div id="dominantEmotion" class="dominant-emotion" style="display: none;"></div>
+            <div id="emotionBars"></div>
+            <div id="emotionHistory" class="emotion-history" style="display: none;">
+                <h4>Emotion Timeline</h4>
+                <div id="emotionTimeline" class="emotion-timeline"></div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="startBtn">Start Camera</button>
+            <button id="stopBtn" disabled>Stop Camera</button>
+            <button id="captureBtn" disabled>Take Photo</button>
+            <button id="exportEmotionBtn" disabled style="background-color: #6f42c1;">Export Emotion Data</button>
+        </div>
+        
+        <div class="photo-container">
+            <div id="photos"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
