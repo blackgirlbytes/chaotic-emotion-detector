@@ -8,15 +8,22 @@ class WebcamApp {
         this.stopBtn = document.getElementById('stopBtn');
         this.captureBtn = document.getElementById('captureBtn');
         this.toggleDetectionBtn = document.getElementById('toggleDetectionBtn');
+        this.chaoticModeBtn = document.getElementById('chaoticModeBtn');
         this.faceCountElement = document.getElementById('faceCount');
+        this.emotionDisplay = document.getElementById('emotionDisplay');
         this.loadingStatus = document.getElementById('loadingStatus');
+        this.emojiOverlay = document.getElementById('emojiOverlay');
         
         this.stream = null;
         this.ctx = this.canvas.getContext('2d');
         this.overlayCtx = this.overlay.getContext('2d');
         this.isDetectionEnabled = false;
+        this.isChaoticModeEnabled = false;
         this.detectionInterval = null;
         this.modelsLoaded = false;
+        this.currentEmotion = 'neutral';
+        this.lastEmotionChange = 0;
+        this.chaosTimeout = null;
         
         this.initializeEventListeners();
         this.loadFaceDetectionModels();
@@ -54,6 +61,7 @@ class WebcamApp {
         this.stopBtn.addEventListener('click', () => this.stopCamera());
         this.captureBtn.addEventListener('click', () => this.capturePhoto());
         this.toggleDetectionBtn.addEventListener('click', () => this.toggleFaceDetection());
+        this.chaoticModeBtn.addEventListener('click', () => this.toggleChaoticMode());
     }
 
     async startCamera() {
@@ -80,6 +88,7 @@ class WebcamApp {
             
             if (this.modelsLoaded) {
                 this.toggleDetectionBtn.disabled = false;
+                this.chaoticModeBtn.disabled = false;
             }
 
         } catch (error) {
@@ -120,8 +129,10 @@ class WebcamApp {
         this.stopBtn.disabled = true;
         this.captureBtn.disabled = true;
         this.toggleDetectionBtn.disabled = true;
+        this.chaoticModeBtn.disabled = true;
         
         this.stopFaceDetection();
+        this.stopChaoticMode();
         this.clearOverlay();
     }
 
@@ -173,6 +184,11 @@ class WebcamApp {
             this.clearOverlay();
             this.drawDetections(detections);
             this.faceCountElement.textContent = `Faces detected: ${detections.length}`;
+
+            // Process emotions for chaotic mode
+            if (detections.length > 0 && this.isChaoticModeEnabled) {
+                this.processEmotionsForChaos(detections);
+            }
 
         } catch (error) {
             console.error('Face detection error:', error);
@@ -344,6 +360,225 @@ class WebcamApp {
         setTimeout(() => {
             errorDiv.remove();
         }, 5000);
+    }
+
+    // Chaotic Mode Methods
+    toggleChaoticMode() {
+        if (this.isChaoticModeEnabled) {
+            this.stopChaoticMode();
+        } else {
+            this.startChaoticMode();
+        }
+    }
+
+    startChaoticMode() {
+        if (!this.isDetectionEnabled) {
+            alert('Please enable face detection first!');
+            return;
+        }
+
+        this.isChaoticModeEnabled = true;
+        this.chaoticModeBtn.textContent = '🎭 Disable Chaotic Mode';
+        this.chaoticModeBtn.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
+        
+        console.log('🎭 CHAOTIC MODE ACTIVATED! 🎭');
+    }
+
+    stopChaoticMode() {
+        this.isChaoticModeEnabled = false;
+        this.chaoticModeBtn.textContent = '🎭 Enable Chaotic Mode';
+        this.chaoticModeBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        
+        // Clear all chaos effects
+        this.clearChaosEffects();
+        this.emotionDisplay.textContent = 'Current emotion: None';
+        
+        console.log('😌 Chaotic mode disabled. Peace restored.');
+    }
+
+    processEmotionsForChaos(detections) {
+        // Get the strongest emotion from the first detected face
+        const detection = detections[0];
+        if (!detection.expressions) return;
+
+        const expressions = detection.expressions;
+        const maxExpression = Object.keys(expressions).reduce((a, b) => 
+            expressions[a] > expressions[b] ? a : b
+        );
+
+        const confidence = expressions[maxExpression];
+        
+        // Only trigger chaos if confidence is above threshold and emotion changed
+        if (confidence > 0.6 && maxExpression !== this.currentEmotion) {
+            this.currentEmotion = maxExpression;
+            this.emotionDisplay.textContent = `Current emotion: ${maxExpression} (${Math.round(confidence * 100)}%)`;
+            this.triggerChaos(maxExpression, confidence);
+        }
+    }
+
+    triggerChaos(emotion, confidence) {
+        console.log(`🎭 CHAOS TRIGGERED: ${emotion} (${Math.round(confidence * 100)}%)`);
+        
+        // Clear previous chaos
+        this.clearChaosEffects();
+        
+        // Apply emotion-based chaos
+        const container = document.querySelector('.container');
+        const body = document.body;
+        
+        switch (emotion) {
+            case 'angry':
+                this.chaosAngry(container, body);
+                break;
+            case 'happy':
+                this.chaosHappy(container, body);
+                break;
+            case 'surprised':
+                this.chaosSurprised(container, body);
+                break;
+            case 'sad':
+                this.chaosSad(container, body);
+                break;
+            case 'fearful':
+                this.chaosFearful(container, body);
+                break;
+            case 'disgusted':
+                this.chaosDisgusted(container, body);
+                break;
+            default:
+                this.chaosNeutral(container, body);
+        }
+
+        // Auto-clear chaos after 3 seconds
+        if (this.chaosTimeout) {
+            clearTimeout(this.chaosTimeout);
+        }
+        this.chaosTimeout = setTimeout(() => {
+            this.clearChaosEffects();
+        }, 3000);
+    }
+
+    chaosAngry(container, body) {
+        container.classList.add('chaos-angry');
+        body.style.filter = 'contrast(1.5) saturate(1.5)';
+        this.randomizeButtons('button-shake');
+        this.spawnEmojis(['😡', '🔥', '💢', '😤'], 'red');
+    }
+
+    chaosHappy(container, body) {
+        container.classList.add('chaos-happy');
+        body.style.filter = 'brightness(1.2) saturate(1.5)';
+        this.randomizeButtons('button-bounce');
+        this.spawnEmojis(['😄', '🎉', '✨', '🌟', '🎊'], 'gold');
+    }
+
+    chaosSurprised(container, body) {
+        container.classList.add('chaos-surprised');
+        body.style.filter = 'brightness(1.5) contrast(1.3)';
+        this.randomizeButtons('button-chaos');
+        this.spawnEmojis(['😲', '🤯', '💥', '⚡'], 'yellow');
+    }
+
+    chaosSad(container, body) {
+        container.classList.add('chaos-sad');
+        body.style.filter = 'blur(1px) grayscale(0.3) brightness(0.8)';
+        this.randomizeButtons('button-shake');
+        this.spawnEmojis(['😢', '💧', '🌧️', '😭'], 'blue');
+    }
+
+    chaosFearful(container, body) {
+        container.classList.add('chaos-fearful');
+        body.style.filter = 'invert(0.1) sepia(0.3) hue-rotate(270deg)';
+        this.randomizeButtons('button-shake');
+        this.spawnEmojis(['😰', '👻', '🌙', '💀'], 'purple');
+    }
+
+    chaosDisgusted(container, body) {
+        container.classList.add('chaos-disgusted');
+        body.style.filter = 'hue-rotate(90deg) saturate(2) contrast(1.2)';
+        this.randomizeButtons('button-chaos');
+        this.spawnEmojis(['🤢', '🤮', '💚', '🐸'], 'green');
+    }
+
+    chaosNeutral(container, body) {
+        container.classList.add('chaos-neutral');
+        body.style.filter = 'grayscale(0.5)';
+        this.spawnEmojis(['😐', '🤷', '💭'], 'gray');
+    }
+
+    randomizeButtons(animationClass) {
+        const buttons = document.querySelectorAll('button:not(:disabled)');
+        buttons.forEach(button => {
+            button.classList.add(animationClass);
+            
+            // Randomly position some buttons
+            if (Math.random() > 0.7) {
+                const randomX = (Math.random() - 0.5) * 20;
+                const randomY = (Math.random() - 0.5) * 20;
+                const randomRotate = (Math.random() - 0.5) * 30;
+                
+                button.style.transform = `translate(${randomX}px, ${randomY}px) rotate(${randomRotate}deg)`;
+            }
+        });
+    }
+
+    spawnEmojis(emojiList, color) {
+        const emojiCount = Math.floor(Math.random() * 8) + 5; // 5-12 emojis
+        
+        for (let i = 0; i < emojiCount; i++) {
+            const emoji = document.createElement('div');
+            emoji.className = 'floating-emoji';
+            emoji.textContent = emojiList[Math.floor(Math.random() * emojiList.length)];
+            
+            // Random position
+            emoji.style.left = Math.random() * 100 + 'vw';
+            emoji.style.top = Math.random() * 100 + 'vh';
+            
+            // Random animation delay
+            emoji.style.animationDelay = Math.random() * 2 + 's';
+            
+            // Add color glow effect
+            emoji.style.textShadow = `0 0 10px ${color}, 0 0 20px ${color}`;
+            
+            this.emojiOverlay.appendChild(emoji);
+            
+            // Remove emoji after animation
+            setTimeout(() => {
+                if (emoji.parentNode) {
+                    emoji.parentNode.removeChild(emoji);
+                }
+            }, 3000);
+        }
+    }
+
+    clearChaosEffects() {
+        const container = document.querySelector('.container');
+        const body = document.body;
+        const buttons = document.querySelectorAll('button');
+        
+        // Remove all chaos classes
+        container.classList.remove(
+            'chaos-angry', 'chaos-happy', 'chaos-surprised', 
+            'chaos-sad', 'chaos-fearful', 'chaos-disgusted', 'chaos-neutral'
+        );
+        
+        // Reset body filters
+        body.style.filter = '';
+        
+        // Reset buttons
+        buttons.forEach(button => {
+            button.classList.remove('button-chaos', 'button-bounce', 'button-shake');
+            button.style.transform = '';
+        });
+        
+        // Clear emojis
+        this.emojiOverlay.innerHTML = '';
+        
+        // Clear timeout
+        if (this.chaosTimeout) {
+            clearTimeout(this.chaosTimeout);
+            this.chaosTimeout = null;
+        }
     }
 }
 

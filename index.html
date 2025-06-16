@@ -20,11 +20,14 @@
             <button id="stopBtn" disabled>Stop Camera</button>
             <button id="captureBtn" disabled>Take Photo</button>
             <button id="toggleDetectionBtn" disabled>Enable Face Detection</button>
+            <button id="chaoticModeBtn" disabled>🎭 Enable Chaotic Mode</button>
         </div>
         <div class="detection-info">
             <p id="faceCount">Faces detected: 0</p>
+            <p id="emotionDisplay">Current emotion: None</p>
             <div id="loadingStatus">Loading face detection models...</div>
         </div>
+        <div id="emojiOverlay" class="emoji-overlay"></div>
         <div class="photo-container">
             <h3>Captured Photos</h3>
             <div id="photos"></div>
